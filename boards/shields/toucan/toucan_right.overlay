@@ -56,19 +56,24 @@
    pinctrl-1 = <&spi0_sleep>;
    pinctrl-names = "default", "sleep";
    cs-gpios = <&gpio0 3 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;  // pull-up to ensure CS is !asserted when asleep
+   // Uses the native Zephyr 4.1 cirque,pinnacle driver
+   // (zephyr/dts/bindings/input/cirque,pinnacle-common.yaml).
    glidepoint:  glidepoint@0 {
         compatible = "cirque,pinnacle";
         reg = <0>;
         spi-max-frequency = <1000000>;
         status = "okay";
-        dr-gpios = <&gpio0 2 (GPIO_ACTIVE_HIGH)>;
+        data-ready-gpios = <&gpio0 2 GPIO_ACTIVE_HIGH>;
         sensitivity = "2x";
-        x-invert;
+        invert-x;
+        // Taps are opt-in with the native driver (the old module enabled them by default).
+        primary-tap-enable;
 
-        // Optional: turning this on enables very aggressive power saving, after 5 seconds with no touches
-        // the trackpad will go to sleep.  It wakes up on touch, but there is a ~300ms delay.  Most users will find
-        // the standard behavior of 'put to sleep when zmk enters idle state (30 seconds without a keypress) feels better.
-	    //sleep;
+        // Hardware low-power mode after 5s without touch (~300ms wake-up latency).
+        // The old module's "sleep on ZMK idle" hook has no native equivalent, so without
+        // this the trackpad never sleeps; disable it if the wake delay feels worse than
+        // the battery cost.
+        sleep-mode-enable;
     };
 };
 

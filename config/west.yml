@@ -1,29 +1,24 @@
 manifest:
   defaults:
-    revision: v0.3
+    # ZMK 0.4 pre-release: track main until v0.4 is tagged, then re-pin.
+    revision: main
   remotes:
     - name: zmkfirmware
       url-base: https://github.com/zmkfirmware
-    - name: petejohanson
-      url-base: https://github.com/petejohanson/
     - name: caksoylar
       url-base: https://github.com/caksoylar
-    - name: geeksville
-      url-base: https://github.com/geeksville
     - name: carrefinho
       url-base: https://github.com/carrefinho
   projects:
     - name: zmk
       remote: zmkfirmware
       import: app/west.yml
-    - name: cirque-input-module
-      remote: geeksville
-      revision: toucan
+    # cirque-input-module removed: Zephyr 4.1 ships a native cirque,pinnacle driver.
     - name: zmk-rgbled-widget
       remote: caksoylar
-      revision: v0.3
+      revision: main
     - name: prospector-zmk-module
       remote: carrefinho
-      revision: main
+      revision: feat/new-status-screens
   self:
     path: config
