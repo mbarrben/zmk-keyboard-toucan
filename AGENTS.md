@@ -24,9 +24,12 @@ Based on `prospector-dongle`, migrated to ZMK `main` (Zephyr 4.1, LVGL 9.3):
   (`dr-gpios` → `data-ready-gpios`, taps now opt-in via `primary-tap-enable`,
   `x-invert` → `invert-x`). Trackpad power saving via `sleep-mode-enable` (hardware,
   5 s idle / ~300 ms wake) — the old module's ZMK-idle sleep hack has no native equivalent.
-- **Local builds**: separate workspace `~/.cache/zmk-ws-main` and image
+- **Local builds**: `./build.sh [right|left|dongle|reset ...] [--update]` wraps the podman
+  invocation — builds the requested targets (default: right left dongle) and copies the
+  `.uf2`s to `firmware/`. Pass `--update` only after changing `config/west.yml`.
+  Uses workspace `~/.cache/zmk-ws-main` and image
   `docker.io/zmkfirmware/zmk-build-arm:4.1-branch` (keep `~/.cache/zmk-ws` +
-  `:stable` for v0.3 branches). Same podman invocation otherwise, with `-b "xiao_ble//zmk"`.
+  `:stable` for v0.3 branches), with `-b "xiao_ble//zmk"`.
   Run `west zephyr-export` in **every** container invocation before `west build` — it
   registers Zephyr's CMake package in the container's ephemeral home, so it doesn't
   persist between runs (failure mode: `Could not find a package configuration file
