@@ -27,6 +27,11 @@ Based on `prospector-dongle`, migrated to ZMK `main` (Zephyr 4.1, LVGL 9.3):
 - **Local builds**: separate workspace `~/.cache/zmk-ws-main` and image
   `docker.io/zmkfirmware/zmk-build-arm:4.1-branch` (keep `~/.cache/zmk-ws` +
   `:stable` for v0.3 branches). Same podman invocation otherwise, with `-b "xiao_ble//zmk"`.
+  Run `west zephyr-export` in **every** container invocation before `west build` — it
+  registers Zephyr's CMake package in the container's ephemeral home, so it doesn't
+  persist between runs (failure mode: `Could not find a package configuration file
+  provided by "Zephyr"`). If `west update` hits flaky `HTTP/2 stream` fetch errors,
+  `git config --global http.version HTTP/1.1` inside the container and retry; it resumes.
 - **Pinning policy**: `west.yml` floats on `main` while 0.4 is in flux. If upstream
   breaks, temporarily pin `zmk` to a known-good SHA. When v0.4 is tagged: re-pin all
   modules to `v0.4`, switch the workflow to `@v0.4`, then consider merging.
