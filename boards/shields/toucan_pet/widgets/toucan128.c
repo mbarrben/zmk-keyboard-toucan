@@ -149,9 +149,7 @@ const LV_ATTRIBUTE_MEM_ALIGN LV_ATTRIBUTE_LARGE_CONST LV_ATTRIBUTE_IMG_TOUCAN128
 };
 
 const lv_img_dsc_t toucan128 = {
-  .header.cf = LV_IMG_CF_INDEXED_1BIT,
-  .header.always_zero = 0,
-  .header.reserved = 0,
+  .header.cf = LV_COLOR_FORMAT_I1,
   .header.w = 128,
   .header.h = 128,
   .data_size = 2056,
