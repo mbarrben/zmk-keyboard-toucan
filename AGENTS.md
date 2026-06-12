@@ -12,6 +12,24 @@ split 42-key column-stagger keyboard with display and Cirque trackpad.
 | `prospector-scanner` | Keyboard + Prospector ZMK dongle, scanner mode |
 | `invert-y-scroll` | Y-axis scroll inversion experiment |
 | `tap-layer` | Tap layer feature experiment |
+| `zmk_4` | ZMK 0.4 pre-release (zmk@main, Zephyr 4.1) + Prospector `feat/new-status-screens` — **do NOT merge to main until ZMK v0.4 is released** |
+
+## `zmk_4` branch specifics
+
+Based on `prospector-dongle`, migrated to ZMK `main` (Zephyr 4.1, LVGL 9.3):
+
+- **Board renamed**: `seeeduino_xiao_ble` → `xiao_ble//zmk` (Zephyr HWMv2 + ZMK variant).
+- **Cirque trackpad**: uses the native Zephyr 4.1 `cirque,pinnacle` driver; the
+  `cirque-input-module` was removed from `west.yml`. Devicetree props renamed
+  (`dr-gpios` → `data-ready-gpios`, taps now opt-in via `primary-tap-enable`,
+  `x-invert` → `invert-x`). Trackpad power saving via `sleep-mode-enable` (hardware,
+  5 s idle / ~300 ms wake) — the old module's ZMK-idle sleep hack has no native equivalent.
+- **Local builds**: separate workspace `~/.cache/zmk-ws-main` and image
+  `docker.io/zmkfirmware/zmk-build-arm:4.1-branch` (keep `~/.cache/zmk-ws` +
+  `:stable` for v0.3 branches). Same podman invocation otherwise, with `-b "xiao_ble//zmk"`.
+- **Pinning policy**: `west.yml` floats on `main` while 0.4 is in flux. If upstream
+  breaks, temporarily pin `zmk` to a known-good SHA. When v0.4 is tagged: re-pin all
+  modules to `v0.4`, switch the workflow to `@v0.4`, then consider merging.
 
 ## How CI builds
 
