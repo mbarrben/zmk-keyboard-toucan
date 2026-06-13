@@ -4,7 +4,7 @@
 # Usage:
 #   ./build.sh [targets...] [--update]
 #
-#   targets   any of: right left dongle reset (default: right left dongle)
+#   targets   any of: right left dongle reset (default: all four)
 #   --update  run `west update` first — needed only after changing config/west.yml
 #
 # Output: firmware/<target>.uf2
@@ -25,7 +25,7 @@ for arg in "$@"; do
     *) echo "unknown target: $arg (valid: right left dongle reset, --update)" >&2; exit 1 ;;
   esac
 done
-[ ${#targets[@]} -gt 0 ] || targets=(right left dongle)
+[ ${#targets[@]} -gt 0 ] || targets=(right left dongle reset)
 
 build_cmds=""
 for t in "${targets[@]}"; do
