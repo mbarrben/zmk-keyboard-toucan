@@ -5,7 +5,7 @@
 #include <zmk/events/activity_state_changed.h>
 
 LV_IMG_DECLARE(toucan128);
-LV_IMG_DECLARE(toucan_sleep);
+LV_IMG_DECLARE(sleep_cat);
 
 static lv_obj_t *status_img;
 
@@ -38,7 +38,7 @@ static int display_activity_event_handler(const zmk_event_t *eh) {
 
     switch (ev->state) {
     case ZMK_ACTIVITY_SLEEP:
-        lv_img_set_src(status_img, &toucan_sleep);
+        lv_img_set_src(status_img, &sleep_cat);
         lv_obj_center(status_img);
         // Force LVGL to render and flush to the LCD before the CPU powers off.
         lv_task_handler();
