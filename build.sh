@@ -39,10 +39,14 @@ for t in "${targets[@]}"; do
         -DZMK_CONFIG=/ws/config -DSHIELD="toucan_left rgbled_adapter toucan_pet" -DZMK_EXTRA_MODULES=/work
 ' ;;
     dongle)
-      build_cmds+='west build -p -s zmk/app -d build/dongle -b "'$BOARD'" -S studio-rpc-usb-uart -- \
+      # Build one dongle .uf2 per prospector status-screen layout.
+      for layout in classic radii field operator; do
+        up=$(echo "$layout" | tr '[:lower:]' '[:upper:]')
+        build_cmds+='west build -p -s zmk/app -d build/dongle_'$layout' -b "'$BOARD'" -S studio-rpc-usb-uart -- \
         -DZMK_CONFIG=/ws/config -DSHIELD="toucan_dongle rgbled_adapter prospector_adapter" \
-        -DZMK_EXTRA_MODULES=/work -DCONFIG_ZMK_STUDIO=y
-' ;;
+        -DZMK_EXTRA_MODULES=/work -DCONFIG_ZMK_STUDIO=y -DCONFIG_PROSPECTOR_STATUS_SCREEN_'$up'=y
+'
+      done ;;
     reset)
       build_cmds+='west build -p -s zmk/app -d build/reset -b "'$BOARD'" -- \
         -DZMK_CONFIG=/ws/config -DSHIELD="settings_reset" -DZMK_EXTRA_MODULES=/work
@@ -69,8 +73,15 @@ podman run --rm -v "$PWD":/work:ro -v "$WS":/ws "$IMAGE" bash -lc '
   '"$build_cmds"'
 '
 
-declare -A out=([right]=toucan_right [left]=toucan_left [dongle]=toucan_dongle [reset]=settings_reset)
+declare -A out=([right]=toucan_right [left]=toucan_left [reset]=settings_reset)
 for t in "${targets[@]}"; do
-  cp "$WS/build/$t/zephyr/zmk.uf2" "firmware/${out[$t]}.uf2"
-  echo "firmware/${out[$t]}.uf2"
+  if [ "$t" = dongle ]; then
+    for layout in classic radii field operator; do
+      cp "$WS/build/dongle_$layout/zephyr/zmk.uf2" "firmware/toucan_dongle_$layout.uf2"
+      echo "firmware/toucan_dongle_$layout.uf2"
+    done
+  else
+    cp "$WS/build/$t/zephyr/zmk.uf2" "firmware/${out[$t]}.uf2"
+    echo "firmware/${out[$t]}.uf2"
+  fi
 done

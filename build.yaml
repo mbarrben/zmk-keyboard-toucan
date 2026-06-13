@@ -19,10 +19,27 @@
 #
 ---
 include:
+  # One dongle artifact per prospector status-screen layout.
   - board: xiao_ble//zmk
     shield: toucan_dongle rgbled_adapter prospector_adapter
     snippet: studio-rpc-usb-uart
-    cmake-args: -DCONFIG_ZMK_STUDIO=y
+    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_PROSPECTOR_STATUS_SCREEN_CLASSIC=y
+    artifact-name: toucan_dongle_classic
+  - board: xiao_ble//zmk
+    shield: toucan_dongle rgbled_adapter prospector_adapter
+    snippet: studio-rpc-usb-uart
+    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_PROSPECTOR_STATUS_SCREEN_RADII=y
+    artifact-name: toucan_dongle_radii
+  - board: xiao_ble//zmk
+    shield: toucan_dongle rgbled_adapter prospector_adapter
+    snippet: studio-rpc-usb-uart
+    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_PROSPECTOR_STATUS_SCREEN_FIELD=y
+    artifact-name: toucan_dongle_field
+  - board: xiao_ble//zmk
+    shield: toucan_dongle rgbled_adapter prospector_adapter
+    snippet: studio-rpc-usb-uart
+    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_PROSPECTOR_STATUS_SCREEN_OPERATOR=y
+    artifact-name: toucan_dongle_operator
   - board: xiao_ble//zmk
     shield: toucan_left rgbled_adapter toucan_pet
   - board: xiao_ble//zmk
