@@ -12,6 +12,10 @@
         reg = <0>;
         width = <144>;
         height = <168>;
+        /* No EXTCOMIN pin wired, so VCOM must be inverted over SPI instead;
+         * otherwise a static image left up for a long time causes DC-bias
+         * image sticking on this panel. */
+        serial-vcom-inversion;
     };
 };
 
