@@ -5,7 +5,6 @@
 #include <zmk/events/activity_state_changed.h>
 
 LV_IMG_DECLARE(toucan128);
-LV_IMG_DECLARE(sleep_cat);
 
 static lv_obj_t *status_img;
 
@@ -21,7 +20,7 @@ lv_obj_t *zmk_display_status_screen() {
     return screen;
 }
 
-// Swap the displayed image on activity changes. This is a plain (synchronous) listener
+// Blank the screen on activity changes. This is a plain (synchronous) listener
 // on purpose: when the keyboard deep-sleeps, ZMK's activity_work_handler raises this
 // event and then calls sys_poweroff() inline, so the redraw must be flushed to the
 // display before the handler returns. A deferred display-work-queue update would never
@@ -38,15 +37,13 @@ static int display_activity_event_handler(const zmk_event_t *eh) {
 
     switch (ev->state) {
     case ZMK_ACTIVITY_SLEEP:
-        lv_img_set_src(status_img, &sleep_cat);
-        lv_obj_center(status_img);
+        lv_obj_add_flag(status_img, LV_OBJ_FLAG_HIDDEN);
         // Force LVGL to render and flush to the LCD before the CPU powers off.
         lv_task_handler();
         lv_refr_now(NULL);
         break;
     case ZMK_ACTIVITY_ACTIVE:
-        lv_img_set_src(status_img, &toucan128);
-        lv_obj_center(status_img);
+        lv_obj_clear_flag(status_img, LV_OBJ_FLAG_HIDDEN);
         break;
     default:
         break; // ignore IDLE
