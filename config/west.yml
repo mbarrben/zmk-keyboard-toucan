@@ -9,16 +9,27 @@ manifest:
       url-base: https://github.com/caksoylar
     - name: carrefinho
       url-base: https://github.com/carrefinho
+    - name: beekeeb
+      url-base: https://github.com/beekeeb
   projects:
     - name: zmk
       remote: zmkfirmware
       import: app/west.yml
-    # cirque-input-module removed: Zephyr 4.1 ships a native cirque,pinnacle driver.
     - name: zmk-rgbled-widget
       remote: caksoylar
       revision: main
     - name: prospector-zmk-module
       remote: carrefinho
       revision: feat/new-status-screens
+    # Toucan 2 trackpad: Azoteq TPS43 (I2C) replaces the Cirque Pinnacle.
+    # Neither module is tagged upstream, so both track main -- see AGENTS.md for the
+    # commits this branch was last built against.
+    - name: zmk_driver_azoteq
+      remote: beekeeb
+      revision: main
+    # Pinch-to-zoom input processor (INPUT_REL_MISC -> behavior bindings).
+    - name: zmk-input-zoom
+      remote: beekeeb
+      revision: main
   self:
     path: config

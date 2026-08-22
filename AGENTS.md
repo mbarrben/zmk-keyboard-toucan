@@ -3,7 +3,8 @@
 ## Repo overview
 
 ZMK firmware config for the [Beekeeb Toucan](https://beekeeb.com/toucan-keyboard/) — wireless
-split 42-key column-stagger keyboard with display and Cirque trackpad.
+split 42-key column-stagger keyboard with display and trackpad (Cirque Pinnacle on
+Toucan 1, Azoteq TPS43 on Toucan 2).
 
 | Branch | Purpose |
 |---|---|
@@ -13,17 +14,17 @@ split 42-key column-stagger keyboard with display and Cirque trackpad.
 | `invert-y-scroll` | Y-axis scroll inversion experiment |
 | `tap-layer` | Tap layer feature experiment |
 | `zmk_4` | ZMK 0.4 pre-release (zmk@main, Zephyr 4.1) + Prospector `feat/new-status-screens` — **do NOT merge to main until ZMK v0.4 is released** |
+| `toucan2_zmk4` | `zmk_4` + Toucan 2 upgrade kit (Azoteq TPS43 trackpad replaces the Cirque) — **current working branch** |
 
 ## `zmk_4` branch specifics
 
 Based on `prospector-dongle`, migrated to ZMK `main` (Zephyr 4.1, LVGL 9.3):
 
 - **Board renamed**: `seeeduino_xiao_ble` → `xiao_ble//zmk` (Zephyr HWMv2 + ZMK variant).
-- **Cirque trackpad**: uses the native Zephyr 4.1 `cirque,pinnacle` driver; the
-  `cirque-input-module` was removed from `west.yml`. Devicetree props renamed
-  (`dr-gpios` → `data-ready-gpios`, taps now opt-in via `primary-tap-enable`,
-  `x-invert` → `invert-x`). Trackpad power saving via `sleep-mode-enable` (hardware,
-  5 s idle / ~300 ms wake) — the old module's ZMK-idle sleep hack has no native equivalent.
+- **Cirque trackpad** (superseded on `toucan2_zmk4`, see below): used the native Zephyr 4.1
+  `cirque,pinnacle` driver; the `cirque-input-module` was removed from `west.yml`.
+  Devicetree props renamed (`dr-gpios` → `data-ready-gpios`, taps opt-in via
+  `primary-tap-enable`, `x-invert` → `invert-x`). Power saving via `sleep-mode-enable`.
 - **Local builds**: `./build.sh [right|left|dongle|reset ...] [--update]` wraps the podman
   invocation — builds the requested targets (default: right left dongle reset; the
   dongle builds all four prospector status-screen layouts) and copies the
@@ -39,6 +40,120 @@ Based on `prospector-dongle`, migrated to ZMK `main` (Zephyr 4.1, LVGL 9.3):
 - **Pinning policy**: `west.yml` floats on `main` while 0.4 is in flux. If upstream
   breaks, temporarily pin `zmk` to a known-good SHA. When v0.4 is tagged: re-pin all
   modules to `v0.4`, switch the workflow to `@v0.4`, then consider merging.
+
+## `toucan2_zmk4` branch — Toucan 2 trackpad
+
+Cut from `zmk_4`. Swaps the Cirque Pinnacle for the [Toucan 2 upgrade
+kit](https://docs.beekeeb.com/toucan2-keyboard/convert-toucan-to-toucan2)'s **Azoteq TPS43**,
+porting the sensor and gesture layer from
+[`beekeeb/zmk-keyboard-toucan2`](https://github.com/beekeeb/zmk-keyboard-toucan2) onto this
+branch's dongle topology. Upstream toucan2 is ZMK v0.3 with the **left half** as central and
+no dongle; here the **prospector dongle** is central, so the input listener lives in
+`toucan_dongle.overlay`, not on a keyboard half.
+
+### Wiring — a pin-for-pin reuse
+
+The converter breakout board reuses the same 7-pin cable, so the pins map straight across:
+
+| Pin | Toucan 1 (Cirque, SPI0) | Toucan 2 (TPS43, I2C0 @ `0x74`) |
+|---|---|---|
+| P1.13 | `SPIM_SCK` | `TWIM_SDA` |
+| P1.15 | `SPIM_MOSI` | `TWIM_SCL` |
+| P1.14 | `SPIM_MISO` | `rst-gpios` |
+| P0.02 | `data-ready-gpios` | `rdy-gpios` |
+| P0.03 | `cs-gpios` | unused |
+
+Two traps: `xiao_i2c` on `xiao_ble//zmk` is an alias for **`&i2c1`**, not `&i2c0` (so it stays
+disabled and we configure `&i2c0` directly); and nRF52840 SPIM0/TWIM0 are the *same*
+peripheral instance, so `&spi0` must be explicitly disabled on the right half.
+
+### Modules
+
+`config/west.yml` gains `beekeeb/zmk_driver_azoteq` (the `azoteq,tps43` driver,
+`CONFIG_INPUT_TPS43`) and `beekeeb/zmk-input-zoom` (the `zmk,input-processor-zoom`
+pinch-to-zoom processor). Neither is tagged upstream, so both track `main`. Last built against
+`zmk_driver_azoteq@c329f30` and `zmk-input-zoom@91bbe0c`; pin to a SHA if upstream breaks.
+
+Neither module had been built against ZMK 0.4 before this branch. Their ZMK surface is
+small — the driver only touches `zmk/event_manager.h` + `zmk/events/activity_state_changed.h`
+(in `tps43_idle_sleeper.c`), and the zoom processor only `zmk_behavior_invoke_binding` plus
+`struct zmk_input_processor_state`.
+
+### `swipes` vs `three-finger-swipe` — do not confuse them
+
+Two independent properties, both emitting `INPUT_BTN_NORTH/SOUTH/EAST/WEST`:
+
+- **`swipes`** — the **single-finger** hardware swipe gesture. Leave it **off**: with
+  `swipe_button_mapper` in the processor chain it would fire desktop-switch shortcuts
+  during ordinary cursor movement.
+- **`three-finger-swipe`** — the 3-finger case, derived in software from raw movement
+  deltas on *every* report while three fingers are down (not a one-shot hardware gesture),
+  so `three-finger-swipe-throttle-ms` (1200 here) is what stops one physical swipe from
+  actuating repeatedly. See `tps43_handle_swipe` in `tps43.c`.
+
+Both were added to the driver in `1d5a7e4` / `c329f30`; older revisions only have `swipes`.
+
+### OS mode is a runtime toggle, not a build flag
+
+Upstream gates the zoom/swipe shortcuts behind `#ifdef TOUCAN_WIN_MODE`. Here they are
+selected at runtime instead, using `zmk,input-listener` layer overrides. `input_listener.c`
+(`app/src/pointing/`, `filter_with_input_config`) scans overrides in **devicetree child
+order** and the first one whose layer is active wins, since `process-next` is unset:
+
+| Listener child | `layers` | Effect |
+|---|---|---|
+| `scroller` (first) | `<1 2>` | one-finger XY→scroll while LOWER/RAISE held |
+| `win_mode` (second) | `<5>` | Ctrl-based zoom, Win-key swipes |
+| base list | — | Cmd-based zoom, Mission Control swipes (macOS) |
+
+Child order is load-bearing: `scroller` must stay first so a held LOWER/RAISE beats a
+toggled-on WIN layer. Toggle with `&tog WIN` on the ADJ layer (row 0, right of `C_VOL_UP`).
+ZMK does not persist toggled layers, so it comes back up in macOS mode after a power cycle;
+prospector showing `WIN` as the active layer doubles as the OS indicator.
+
+### ZMK bug: layer overrides swallow `ZMK_INPUT_PROC_STOP`
+
+`filter_with_input_config` in `app/src/pointing/input_listener.c`:
+
+```c
+int ret = apply_config(cfg->listener_index, &override->config, override_data, data, evt);
+if (ret < 0) { return ret; }
+if (!override->process_next) { return 0; }   // <-- ret is dropped; 0 == CONTINUE
+```
+
+The base path ends with `return apply_config(...)` and propagates the return value, but a
+**layer override discards it**. So any processor that consumes an event by returning
+`ZMK_INPUT_PROC_STOP` — `zmk,input-processor-behaviors` does this on every code it matches —
+works in the base list and silently fails inside a `layers = <...>` child.
+
+This bit us via `INPUT_BTN_TOUCH`. The TPS43 reports it as a **level**: 1 while any finger
+is down, 0 when all lift (`tps43.c`, `is_touching = (num_fingers > 0)`), unlike the Cirque,
+whose `primary-tap-enable` pulsed it per tap. `handle_key_code` maps `INPUT_BTN_TOUCH`
+directly onto mouse button 0, so a leaked event holds the left button for the whole touch —
+the pointer drag-selects text.
+
+**Workaround:** `btn_touch_relabel`, a `zmk,input-processor-code-mapper` that rewrites
+`INPUT_BTN_TOUCH` → `INPUT_BTN_5`, placed **first in every processor list** on
+`trackpad_listener`. Mutating `evt->code` survives regardless of what happens to the return
+value, and `INPUT_BTN_5` is not a code `handle_key_code` acts on (it handles `BTN_0..BTN_4`
+and `BTN_TOUCH` only), so it is inert. `is_touching_processor` then matches `INPUT_BTN_5`.
+
+Two consequences worth remembering:
+
+- **Any** new layer override on this listener must also start with `&btn_touch_relabel`.
+- `is_touching_processor` is repeated in every list, including `scroller`, so a touch that
+  begins in one mode and ends in another still gets its `&mo 4` release — otherwise the MOU
+  layer sticks on.
+
+The other consumers are safe by luck: `swipe_button_mapper` matches
+`BTN_NORTH/EAST/SOUTH/WEST` (`0x130`–`0x134`), none of which `handle_key_code` acts on.
+
+### Keymap layers
+
+`0 BASE, 1 LOWER, 2 RAISE, 3 ADJ, 4 MOU, 5 WIN` (`extra_3` still reserved). MOU is held
+automatically by `is_touching_processor` while a finger rests on the pad, turning the six
+thumb keys into mouse buttons. WIN is fully transparent — it exists only as a flag for the
+listener override, so MOU's bindings still resolve underneath it.
 
 ## How CI builds
 

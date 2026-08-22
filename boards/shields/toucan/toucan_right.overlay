@@ -2,7 +2,14 @@
 #include <input/processors.dtsi>
 #include <dt-bindings/zmk/input_transform.h>
 
+// xiao_i2c is &i2c1 on this board; the trackpad hangs off &i2c0 instead (below).
 &xiao_i2c {
+    status = "disabled";
+};
+
+// SPIM0 and TWIM0 are the same nRF52840 peripheral instance -- the Cirque used SPI0 on
+// these very pins, so spi0 has to stay off now that the TPS43 drives them as I2C.
+&spi0 {
     status = "disabled";
 };
 
@@ -28,58 +35,79 @@
     ;
 };
 
+// Toucan 2 upgrade kit: the converter breakout board reuses the same 7-pin cable the
+// Cirque used, so the pins map straight across:
+//   P1.13  SPIM_SCK          -> TWIM_SDA
+//   P1.15  SPIM_MOSI         -> TWIM_SCL
+//   P1.14  SPIM_MISO         -> rst-gpios
+//   P0.02  data-ready-gpios  -> rdy-gpios
+//   P0.03  cs-gpios          -> unused
 &pinctrl {
-    spi0_default: spi0_default {
+    i2c0_azoteq_default: i2c0_azoteq_default {
         group1 {
-            psels = <NRF_PSEL(SPIM_SCK, 1, 13)>,
-                <NRF_PSEL(SPIM_MOSI, 1, 15)>,
-                <NRF_PSEL(SPIM_MISO, 1, 14)>;
+            psels = <NRF_PSEL(TWIM_SDA, 1, 13)>,
+                    <NRF_PSEL(TWIM_SCL, 1, 15)>;
+            bias-pull-up;
         };
     };
 
-     spi0_sleep: spi0_sleep {
+    i2c0_azoteq_sleep: i2c0_azoteq_sleep {
         group1 {
-            psels = <NRF_PSEL(SPIM_SCK, 1, 13)>,
-                    <NRF_PSEL(SPIM_MOSI, 1, 15)>,
-                    <NRF_PSEL(SPIM_MISO, 1, 14)>;
+            psels = <NRF_PSEL(TWIM_SDA, 1, 13)>,
+                    <NRF_PSEL(TWIM_SCL, 1, 15)>;
             low-power-enable;
-            bias-pull-down; // minimize power leakage during sleep
         };
     };
-
 };
 
-&spi0 {
-   compatible = "nordic,nrf-spim";
-   status = "okay";
-   pinctrl-0 = <&spi0_default>;
-   pinctrl-1 = <&spi0_sleep>;
-   pinctrl-names = "default", "sleep";
-   cs-gpios = <&gpio0 3 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;  // pull-up to ensure CS is !asserted when asleep
-   // Uses the native Zephyr 4.1 cirque,pinnacle driver
-   // (zephyr/dts/bindings/input/cirque,pinnacle-common.yaml).
-   glidepoint:  glidepoint@0 {
-        compatible = "cirque,pinnacle";
-        reg = <0>;
-        spi-max-frequency = <1000000>;
-        status = "okay";
-        data-ready-gpios = <&gpio0 2 GPIO_ACTIVE_HIGH>;
-        sensitivity = "2x";
-        invert-x;
-        // Taps are opt-in with the native driver (the old module enabled them by default).
-        primary-tap-enable;
+&i2c0 {
+    status = "okay";
+    clock-frequency = <I2C_BITRATE_FAST>;
+    pinctrl-0 = <&i2c0_azoteq_default>;
+    pinctrl-1 = <&i2c0_azoteq_sleep>;
+    pinctrl-names = "default", "sleep";
 
-        // Hardware low-power mode after 5s without touch (~300ms wake-up latency).
-        // The old module's "sleep on ZMK idle" hook has no native equivalent, so without
-        // this the trackpad never sleeps; disable it if the wake delay feels worse than
-        // the battery cost.
-        sleep-mode-enable;
+    tps43_trackpad: trackpad@74 {
+        compatible = "azoteq,tps43";
+        reg = <0x74>;
+        status = "okay";
+
+        rst-gpios = <&gpio1 14 GPIO_ACTIVE_HIGH>;
+        rdy-gpios = <&gpio0 2 GPIO_ACTIVE_HIGH>;
+
+        // Power management lives on the sensor now (the Cirque used ZMK-side hooks).
+        enable-power-management;
+        // idle-sleep gives maximal savings but the pad stops working once ZMK goes idle
+        // (~30s without a keypress), which is not worth it.
+        // idle-sleep;
+        // 640ms LP2 report rate draws ~55uA instead of the default 160ms / ~174uA.
+        report-rate-lp2 = <640>;
+
+        // Orientation and feel -- these come from the kit's trackpad mount, which is the
+        // same part upstream toucan2 ships, so they are copied verbatim.
+        switch-xy;
+        invert-scroll-y;
+        scroll-angle = <30>;      // the ~47deg default is too wide for this pad
+        sensitivity = <100>;
+        scroll-sensitivity = <100>;
+        filter-settings = <0x0B>; // IIR + MAV + ALP, dynamic IIR
+        hold-time = <500>;
+
+        // Gestures. Note `swipes` (deliberately off) is the SINGLE-finger swipe gesture --
+        // enabling it would fire the desktop-switch shortcuts during ordinary cursor
+        // movement. `three-finger-swipe` is an independent property for the 3-finger case
+        // (see tps43_handle_swipe in tps43.c). It is derived from raw deltas on every
+        // report rather than a one-shot hardware gesture, hence the throttle.
+        zoom;
+        scroll;
+        single-tap;
+        two-finger-tap;
+        press-and-hold;
+        three-finger-swipe;
+        three-finger-swipe-throttle-ms = <1200>;
     };
 };
 
-&glidepoint_split {
-    device = <&glidepoint>;
-
-    // Optional
-    // input-processors = <&zip_xy_transform (INPUT_TRANSFORM_XY_SWAP | INPUT_TRANSFORM_X_INVERT | INPUT_TRANSFORM_Y_INVERT)>;
+&trackpad_split {
+    device = <&tps43_trackpad>;
 };

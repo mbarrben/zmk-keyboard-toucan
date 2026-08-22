@@ -38,6 +38,6 @@
     };
 };
 
-&glidepoint_listener {
+&trackpad_listener {
     status = "okay";
 };

@@ -11,6 +11,11 @@
 #define LOWER 1
 #define RAISE 2
 #define ADJ   3
+// Held automatically while a finger rests on the trackpad (is_touching_processor).
+#define MOU   4
+// Sticky toggle: swaps the trackpad's zoom/swipe shortcuts from macOS to Windows/Linux
+// via the win_mode override on trackpad_listener. Otherwise transparent.
+#define WIN   5
 
 
 #define KEYS_L            0 1 2 3 4 5 12 13 14 15 16 17 24 25 26 27 28 29
@@ -119,19 +124,34 @@
         adj {
             display-name = "ADJ";
             bindings = <
-                &trans  &trans  &kp F7  &kp F8  &kp F9   &kp F12            &kp C_VOL_DN  &kp C_MUTE  &kp C_VOL_UP  &trans  &trans  &trans
+                &trans  &trans  &kp F7  &kp F8  &kp F9   &kp F12            &kp C_VOL_DN  &kp C_MUTE  &kp C_VOL_UP  &tog WIN  &trans  &trans
                 &trans  &trans  &kp F4  &kp F5  &kp F6   &kp F11            &trans        &trans      &trans        &trans  &trans  &trans
                 &trans  &kp F1  &kp F2  &kp F3  &kp F10  &trans             &trans        &trans      &trans        &trans  &trans  &trans
                                         &mo 1   &trans   &trans             &mo 2         &trans      &none
             >;
         };
 
-        extra_1 {
-                status = "reserved";
+        // Held while touching the trackpad, so the thumb keys become mouse buttons.
+        mouse {
+            display-name = "MOU";
+            bindings = <
+                &trans  &trans  &trans  &trans  &trans  &trans            &trans  &trans  &trans  &trans  &trans  &trans
+                &trans  &trans  &trans  &trans  &trans  &trans            &trans  &trans  &trans  &trans  &trans  &trans
+                &trans  &trans  &trans  &trans  &trans  &trans            &trans  &trans  &trans  &trans  &trans  &trans
+                                    &mkp MCLK  &mkp LCLK  &mkp RCLK       &mkp LCLK  &mkp RCLK  &mkp MCLK
+            >;
         };
 
-        extra_2 {
-                status = "reserved";
+        // Fully transparent. Exists only so trackpad_listener's win_mode override has a
+        // layer to key off; toggled with &tog WIN from ADJ. Not persisted across reboots.
+        win {
+            display-name = "WIN";
+            bindings = <
+                &trans  &trans  &trans  &trans  &trans  &trans            &trans  &trans  &trans  &trans  &trans  &trans
+                &trans  &trans  &trans  &trans  &trans  &trans            &trans  &trans  &trans  &trans  &trans  &trans
+                &trans  &trans  &trans  &trans  &trans  &trans            &trans  &trans  &trans  &trans  &trans  &trans
+                                        &trans  &trans  &trans            &trans  &trans  &trans
+            >;
         };
 
         extra_3 {

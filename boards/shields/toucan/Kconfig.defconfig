@@ -47,10 +47,23 @@ if SHIELD_TOUCAN_DONGLE || SHIELD_TOUCAN_RIGHT
         default y
 endif
 
-if SHIELD_TOUCAN_LEFT || SHIELD_TOUCAN_RIGHT
+if SHIELD_TOUCAN_LEFT
 
+# Only the left half still needs SPI (nice_view). The right half's Cirque used SPI0;
+# the Toucan 2 TPS43 uses I2C0, which is the same nRF52840 peripheral instance.
 config SPI
     default y
+
+endif
+
+if SHIELD_TOUCAN_RIGHT
+
+config I2C
+    default y
+
+endif
+
+if SHIELD_TOUCAN_LEFT || SHIELD_TOUCAN_RIGHT
 
 config ZMK_SPLIT
     default y
