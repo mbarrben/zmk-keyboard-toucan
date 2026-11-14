@@ -168,6 +168,12 @@ the `toucan_bt60` shield (`boards/shields/toucan_bt60/`).
   all-1U bottom row). The dongle uses it as its only physical layout; the BT60 uses it
   with `row-offset = <4>`, so its kscan rows 1–5 report as positions 42–106. Split
   position bitmaps are 16 bytes, so positions must stay below 128.
+- **Layout index trap.** The central pushes its selected physical layout to peripherals
+  as an *index* (`split_svc_select_phys_layout` → `zmk_physical_layouts_select`), and the
+  dongle always sends 0. The `bt60` board brings four `layout_60_*` layouts; while they're
+  enabled, index 0 is `layout_60_all1u`, so its transform silently replaces ours and every
+  key lands on the wrong position (`1`→q, space→r). `toucan_bt60.overlay` disables them so
+  `toucan_bt60_layout` is the only layout. A `chosen` physical layout is not enough.
 - **Keymap.** Every layer in `config/toucan.keymap` has 107 bindings. The BT60 shield
   resolves to the same file (keymap candidate `toucan`), which keeps the board's
   `bt60_2_0_0.keymap` out. BT60 has no `sensor-bindings` (no encoder) and no lighting
