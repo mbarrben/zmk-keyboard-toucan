@@ -150,10 +150,39 @@ The other consumers are safe by luck: `swipe_button_mapper` matches
 
 ### Keymap layers
 
-`0 BASE, 1 LOWER, 2 RAISE, 3 ADJ, 4 MOU, 5 WIN` (`extra_3` still reserved). MOU is held
+`0 BASE, 1 LOWER, 2 RAISE, 3 ADJ, 4 MOU, 5 WIN` (`extra_3` still reserved; on
+`toucan2_zmk4_bt60` it is replaced by `6 BT_FN, 7 BT_SYS`, see below). MOU is held
 automatically by `is_touching_processor` while a finger rests on the pad, turning the six
 thumb keys into mouse buttons. WIN is fully transparent — it exists only as a flag for the
 listener override, so MOU's bindings still resolve underneath it.
+
+## `toucan2_zmk4_bt60` branch — BT60 as a third peripheral
+
+Cut from `toucan2_zmk4`. A Polarity Works BT60 V2 (upstream ZMK board `bt60//zmk`, rev
+2.0.0) joins the two Toucan halves as split peripheral #3 of the prospector dongle, via
+the `toucan_bt60` shield (`boards/shields/toucan_bt60/`).
+
+- **One position space.** `toucan-bt60-layout.dtsi` defines `toucan_bt60_transform` /
+  `toucan_bt60_layout`: positions 0–41 are the Toucan (same order as `default_transform`,
+  so the halves are unchanged and need no reflash), 42–106 the BT60 (ISO top rows,
+  all-1U bottom row). The dongle uses it as its only physical layout; the BT60 uses it
+  with `row-offset = <4>`, so its kscan rows 1–5 report as positions 42–106. Split
+  position bitmaps are 16 bytes, so positions must stay below 128.
+- **Keymap.** Every layer in `config/toucan.keymap` has 107 bindings. The BT60 shield
+  resolves to the same file (keymap candidate `toucan`), which keeps the board's
+  `bt60_2_0_0.keymap` out. BT60 has no `sensor-bindings` (no encoder) and no lighting
+  (`toucan_bt60.conf` disables underglow/backlight/ext-power; `&rgb_ug` can't run on the
+  LED-less dongle).
+- **Dongle RAM is the constraint.** The dongle was at 95% RAM before this branch, and
+  `zmk_keymap` is layers × positions × 16 B. To fit, `extra_3` was dropped (no Studio
+  add-layer slot) and `BT_MAX_CONN`/`BT_MAX_PAIRED` are 7 = 3 peripherals + 4 host
+  profiles. Adding a layer costs 1,712 B and needs room freed elsewhere first, e.g. a
+  smaller `CONFIG_LV_Z_VDB_SIZE`.
+- **USB on the BT60 only charges it.** `ZMK_USB` is central-only, so with a cable it still
+  types through the dongle. The PCB switch is a battery power switch, not a mode switch.
+- **First pairing:** flash `settings_reset_bt60` and then `toucan_bt60` to the BT60. A
+  peripheral with an old host bond does directed advertising and never finds the dongle.
+  Local builds: `./build.sh bt60 bt60_reset`.
 
 ## How CI builds
 
