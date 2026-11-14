@@ -173,11 +173,12 @@ the `toucan_bt60` shield (`boards/shields/toucan_bt60/`).
   `bt60_2_0_0.keymap` out. BT60 has no `sensor-bindings` (no encoder) and no lighting
   (`toucan_bt60.conf` disables underglow/backlight/ext-power; `&rgb_ug` can't run on the
   LED-less dongle).
-- **Dongle RAM is the constraint.** The dongle was at 95% RAM before this branch, and
-  `zmk_keymap` is layers × positions × 16 B. To fit, `extra_3` was dropped (no Studio
-  add-layer slot) and `BT_MAX_CONN`/`BT_MAX_PAIRED` are 7 = 3 peripherals + 4 host
-  profiles. Adding a layer costs 1,712 B and needs room freed elsewhere first, e.g. a
-  smaller `CONFIG_LV_Z_VDB_SIZE`.
+- **Dongle RAM is the constraint.** The dongle was at 94–97% RAM before this branch
+  (radii highest), and `zmk_keymap` is layers × positions × 16 B; the BT60 adds ~12 KB.
+  To fit: `extra_3` was dropped (no Studio add-layer slot), `BT_MAX_CONN`/`BT_MAX_PAIRED`
+  are 7 = 3 peripherals + 4 host profiles, and `config/toucan_dongle.conf` sets
+  `CONFIG_LV_Z_VDB_SIZE=40` (prospector default 50; frees ~26 KB of LVGL draw buffers).
+  Each extra layer costs 1,712 B.
 - **USB on the BT60 only charges it.** `ZMK_USB` is central-only, so with a cable it still
   types through the dongle. The PCB switch is a battery power switch, not a mode switch.
 - **First pairing:** flash `settings_reset_bt60` and then `toucan_bt60` to the BT60. A
