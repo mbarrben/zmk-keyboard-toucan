@@ -1,0 +1,8 @@
+file_format: "1"
+id: toucan_bt60
+name: Toucan BT60 peripheral
+type: shield
+url: https://polarityworks.com/btckp
+requires: [bt60]
+features:
+  - keys

@@ -1,0 +1,9 @@
+if SHIELD_TOUCAN_BT60
+
+config ZMK_SPLIT
+    default y
+
+config ZMK_SPLIT_ROLE_CENTRAL
+    default n
+
+endif

@@ -4,7 +4,7 @@
 # Usage:
 #   ./build.sh [targets...] [--update]
 #
-#   targets   any of: right left dongle reset (default: all four)
+#   targets   any of: right left dongle reset bt60 bt60_reset (default: all)
 #   --update  run `west update` first — needed only after changing config/west.yml
 #
 # Output: firmware/<target>.uf2
@@ -21,11 +21,11 @@ targets=()
 for arg in "$@"; do
   case "$arg" in
     --update) update=1 ;;
-    right|left|dongle|reset) targets+=("$arg") ;;
-    *) echo "unknown target: $arg (valid: right left dongle reset, --update)" >&2; exit 1 ;;
+    right|left|dongle|reset|bt60|bt60_reset) targets+=("$arg") ;;
+    *) echo "unknown target: $arg (valid: right left dongle reset bt60 bt60_reset, --update)" >&2; exit 1 ;;
   esac
 done
-[ ${#targets[@]} -gt 0 ] || targets=(right left dongle reset)
+[ ${#targets[@]} -gt 0 ] || targets=(right left dongle reset bt60 bt60_reset)
 
 build_cmds=""
 for t in "${targets[@]}"; do
@@ -51,6 +51,14 @@ for t in "${targets[@]}"; do
       build_cmds+='west build -p -s zmk/app -d build/reset -b "'$BOARD'" -- \
         -DZMK_CONFIG=/ws/config -DSHIELD="settings_reset" -DZMK_EXTRA_MODULES=/work
 ' ;;
+    bt60)
+      build_cmds+='west build -p -s zmk/app -d build/bt60 -b "bt60//zmk" -- \
+        -DZMK_CONFIG=/ws/config -DSHIELD="toucan_bt60" -DZMK_EXTRA_MODULES=/work
+' ;;
+    bt60_reset)
+      build_cmds+='west build -p -s zmk/app -d build/bt60_reset -b "bt60//zmk" -- \
+        -DZMK_CONFIG=/ws/config -DSHIELD="settings_reset" -DZMK_EXTRA_MODULES=/work
+' ;;
   esac
 done
 
@@ -73,7 +81,7 @@ podman run --rm -v "$PWD":/work:ro -v "$WS":/ws "$IMAGE" bash -lc '
   '"$build_cmds"'
 '
 
-declare -A out=([right]=toucan_right [left]=toucan_left [reset]=settings_reset)
+declare -A out=([right]=toucan_right [left]=toucan_left [reset]=settings_reset [bt60]=toucan_bt60 [bt60_reset]=settings_reset_bt60)
 for t in "${targets[@]}"; do
   if [ "$t" = dongle ]; then
     for layout in classic radii field operator; do

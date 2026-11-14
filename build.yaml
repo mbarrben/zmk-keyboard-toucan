@@ -46,3 +46,9 @@ include:
     shield: toucan_right rgbled_adapter
   - board: xiao_ble//zmk
     shield: settings_reset
+  - board: bt60//zmk
+    shield: toucan_bt60
+    artifact-name: toucan_bt60
+  - board: bt60//zmk
+    shield: settings_reset
+    artifact-name: settings_reset_bt60

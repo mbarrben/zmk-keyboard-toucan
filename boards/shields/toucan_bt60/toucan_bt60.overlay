@@ -1,0 +1,13 @@
+#include "../toucan/toucan-bt60-layout.dtsi"
+
+// BT60 kscan rows 1-5 become combined rows 5-9, i.e. dongle positions 42-106.
+// Kscan row 0 has no switches on the V2 PCB; its RCs are absent from the map and ignored.
+&toucan_bt60_transform {
+    row-offset = <4>;
+};
+
+/ {
+    chosen {
+        zmk,physical-layout = &toucan_bt60_layout;
+    };
+};
