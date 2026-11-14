@@ -219,17 +219,13 @@
                 &trans  &trans  &trans  &trans  &trans  &trans            &trans  &trans  &trans  &trans  &trans  &trans
                 &trans  &trans  &trans  &trans  &trans  &trans            &trans  &trans  &trans  &trans  &trans  &trans
                                         &trans  &trans  &trans            &trans  &trans  &trans
-                // BT60 (positions 42-106)
-                &bt BT_CLR &bt BT_SEL 1 &bt BT_SEL 2 &bt BT_SEL 3 &bt BT_SEL 4 &bt BT_SEL 5 &trans &trans &trans &trans &trans &trans &trans &trans
+                // BT60 (positions 42-106). Keys 1-4 select the dongle's host profiles 0-3 (BT_MAX_PAIRED 7 - 3 peripherals = 4).
+                &bt BT_CLR &bt BT_SEL 0 &bt BT_SEL 1 &bt BT_SEL 2 &bt BT_SEL 3 &none &trans &trans &trans &trans &trans &trans &trans &trans
                 &out OUT_TOG &trans &trans &trans &trans &trans &trans &trans &trans &trans &trans &trans &trans
                 &none &trans &trans &trans &trans &trans &trans &trans &trans &trans &trans &trans &trans &trans
                 &trans &trans &trans &trans &trans &trans &trans &trans &trans &trans &trans &trans &trans &trans &trans
                 &trans &trans &trans &trans &trans &trans &trans &trans &trans
             >;
-        };
-
-        extra_3 {
-                status = "reserved";
         };
     };
 };
