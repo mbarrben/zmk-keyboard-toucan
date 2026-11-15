@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build ZMK firmware locally (zmk_4 branch: ZMK main / Zephyr 4.1).
+# Build ZMK firmware locally with podman or docker (zmk_4 branch: ZMK main / Zephyr 4.1).
 #
 # Usage:
 #   ./build.sh [targets...] [--update]
@@ -15,6 +15,9 @@ cd "$(dirname "$0")"
 IMAGE=docker.io/zmkfirmware/zmk-build-arm:4.1-branch
 WS="$HOME/.cache/zmk-ws-main"
 BOARD="xiao_ble//zmk"
+# podman (Arch) or docker (WSL/Ubuntu); override with CONTAINER_ENGINE=...
+ENGINE="${CONTAINER_ENGINE:-$(command -v podman || command -v docker || true)}"
+[ -n "$ENGINE" ] || { echo "need podman or docker on PATH" >&2; exit 1; }
 
 update=0
 targets=()
@@ -71,7 +74,7 @@ fi
 
 mkdir -p "$WS" firmware
 
-podman run --rm -v "$PWD":/work:ro -v "$WS":/ws "$IMAGE" bash -lc '
+"$ENGINE" run --rm -v "$PWD":/work:ro -v "$WS":/ws "$IMAGE" bash -lc '
   set -e
   cd /ws
   rm -rf config && mkdir config && cp -RL /work/config/* config/ 2>/dev/null || true

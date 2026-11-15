@@ -150,8 +150,8 @@ The other consumers are safe by luck: `swipe_button_mapper` matches
 
 ### Keymap layers
 
-`0 BASE, 1 LOWER, 2 RAISE, 3 ADJ, 4 MOU, 5 WIN` (`extra_3` still reserved; on
-`toucan2_zmk4_bt60` it is replaced by `6 BT_FN, 7 BT_SYS`, see below). MOU is held
+`0 BASE, 1 LOWER, 2 RAISE, 3 ADJ, 4 MOU, 5 WIN` (`extra_3` still reserved; dropped on
+`toucan2_zmk4_bt60`, see below). MOU is held
 automatically by `is_touching_processor` while a finger rests on the pad, turning the six
 thumb keys into mouse buttons. WIN is fully transparent — it exists only as a flag for the
 listener override, so MOU's bindings still resolve underneath it.
@@ -178,7 +178,10 @@ the `toucan_bt60` shield (`boards/shields/toucan_bt60/`).
   resolves to the same file (keymap candidate `toucan`), which keeps the board's
   `bt60_2_0_0.keymap` out. BT60 has no `sensor-bindings` (no encoder) and no lighting
   (`toucan_bt60.conf` disables underglow/backlight/ext-power; `&rgb_ug` can't run on the
-  LED-less dongle).
+  LED-less dongle). The BT60's own Fn and system layers live on the BT60 positions of
+  RAISE and LOWER. The key right of UP is `&mo RAISE` and the key right of SPACE is
+  `&mo LOWER`, so holding both reaches ADJ through `tri_layer`, and either one turns the
+  trackpad into a scroller (`scroller`, `layers = <1 2>`).
 - **Dongle RAM is the constraint.** The dongle was at 94–97% RAM before this branch
   (radii highest), and `zmk_keymap` is layers × positions × 16 B; the BT60 adds ~12 KB.
   To fit: `extra_3` was dropped (no Studio add-layer slot), `BT_MAX_CONN`/`BT_MAX_PAIRED`
