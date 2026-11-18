@@ -1,0 +1,7 @@
+board:
+  name: klink
+  vendor: kbdfans
+  socs:
+    - name: nrf52840
+      variants:
+        - name: zmk

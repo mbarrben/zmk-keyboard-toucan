@@ -1,0 +1,11 @@
+file_format: "1"
+id: klink//zmk
+name: KBDfans klink (Tofu65 3.0 dual-mode)
+type: board
+arch: arm
+features:
+  - keys
+outputs:
+  - usb
+  - ble
+url: https://kbdfans.com/products/tofu65-3-0

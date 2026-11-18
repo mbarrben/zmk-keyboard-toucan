@@ -1,0 +1,9 @@
+# klink: nRF52840 controller of the KBDfans Tofu65 3.0 Dual-Mode PCB.
+# Ported to HWMv2 from https://github.com/yangdigi/zmk-keyboards-klink (MIT).
+
+config BOARD_KLINK
+    select SOC_NRF52840_QIAA
+    select ZMK_BOARD_COMPAT
+    imply RETAINED_MEM
+    imply RETENTION
+    imply RETENTION_BOOT_MODE
