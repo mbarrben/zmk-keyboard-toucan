@@ -1,0 +1,8 @@
+file_format: "1"
+id: toucan_tofu65
+name: Toucan Tofu65 peripheral
+type: shield
+url: https://kbdfans.com/products/tofu65-3-0
+requires: [klink]
+features:
+  - keys

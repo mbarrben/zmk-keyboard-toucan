@@ -1,0 +1,84 @@
+// KBDfans Tofu65 3.0 Dual-Mode PCB as a split peripheral of the prospector dongle.
+// Hardware definitions (595 shifter, rows, battery divider) from
+// https://github.com/openkbd/zmk-config-tofu65-ble-3.0 (klink_kbd/common.overlay).
+
+#include "../toucan/toucan-tofu65-layout.dtsi"
+
+// Tofu65 kscan rows 0-4 become combined rows 4-8, i.e. dongle positions 42-108.
+// The klink board defines no physical layouts, so toucan_tofu65_layout is index 0, which is
+// the index the dongle pushes to every peripheral.
+&toucan_tofu65_transform {
+    row-offset = <4>;
+};
+
+// Tofu65 3.0 battery divider is on AIN3 (vendor common.overlay overrides klink's AIN2).
+&vbatt {
+    io-channels = <&adc 3>;
+};
+
+&pinctrl {
+    spi0_default: spi0_default {
+        group1 {
+            psels = <NRF_PSEL(SPIM_SCK, 1, 13)>,
+                    <NRF_PSEL(SPIM_MOSI, 0, 28)>;
+        };
+    };
+
+    spi0_sleep: spi0_sleep {
+        group1 {
+            psels = <NRF_PSEL(SPIM_SCK, 1, 13)>,
+                    <NRF_PSEL(SPIM_MOSI, 0, 28)>;
+            low-power-enable;
+        };
+    };
+};
+
+&spi0 {
+    compatible = "nordic,nrf-spim";
+    status = "okay";
+    pinctrl-0 = <&spi0_default>;
+    pinctrl-1 = <&spi0_sleep>;
+    pinctrl-names = "default", "sleep";
+    cs-gpios = <&gpio1 0 GPIO_ACTIVE_LOW>;
+
+    shifter: 595@0 {
+        compatible = "zmk,gpio-595";
+        status = "okay";
+        gpio-controller;
+        spi-max-frequency = <8000000>;
+        reg = <0>;
+        #gpio-cells = <2>;
+        ngpios = <16>;
+    };
+};
+
+/ {
+    chosen {
+        zmk,kscan = &kscan0;
+        zmk,physical-layout = &toucan_tofu65_layout;
+    };
+
+    kscan0: kscan_keys {
+        compatible = "zmk,kscan-gpio-matrix";
+        diode-direction = "col2row";
+        // Wakes the board from ZMK_SLEEP (System OFF) on any keypress. The 595 has no PM
+        // hook, so its latched (all-active) column outputs persist through sleep.
+        wakeup-source;
+
+        col-gpios
+            = <&shifter 0 GPIO_ACTIVE_LOW>, <&shifter 1 GPIO_ACTIVE_LOW>, <&shifter 2 GPIO_ACTIVE_LOW>
+            , <&shifter 3 GPIO_ACTIVE_LOW>, <&shifter 4 GPIO_ACTIVE_LOW>, <&shifter 5 GPIO_ACTIVE_LOW>
+            , <&shifter 6 GPIO_ACTIVE_LOW>, <&shifter 7 GPIO_ACTIVE_LOW>, <&shifter 8 GPIO_ACTIVE_LOW>
+            , <&shifter 9 GPIO_ACTIVE_LOW>, <&shifter 10 GPIO_ACTIVE_LOW>, <&shifter 11 GPIO_ACTIVE_LOW>
+            , <&shifter 12 GPIO_ACTIVE_LOW>, <&shifter 13 GPIO_ACTIVE_LOW>, <&shifter 14 GPIO_ACTIVE_LOW>
+            ;
+
+        row-gpios
+            = <&gpio0 30 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>
+            , <&gpio0 31 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>
+            , <&gpio0 29 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>
+            , <&gpio0 2 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>
+            , <&gpio0 9 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>
+            ;
+    };
+};

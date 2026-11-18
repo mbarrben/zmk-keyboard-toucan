@@ -1,9 +1,13 @@
-if SHIELD_TOUCAN_BT60
+if SHIELD_TOUCAN_TOFU65
 
 config ZMK_SPLIT
     default y
 
 config ZMK_SPLIT_ROLE_CENTRAL
     default n
+
+# 74HC595 column shifter on SPI0.
+config SPI
+    default y
 
 endif

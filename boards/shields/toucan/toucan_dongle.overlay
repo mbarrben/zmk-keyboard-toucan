@@ -4,9 +4,9 @@
 #include "toucan-layouts.dtsi"
 #include "toucan.dtsi"
 // Must come after toucan.dtsi: keys.h's 1-arg RC() must already be shadowed by matrix_transform.h (see toucan.dtsi).
-#include "toucan-bt60-layout.dtsi"
+#include "toucan-tofu65-layout.dtsi"
 
-// The dongle keymap spans Toucan + BT60 (107 positions); keep toucan_bt60_layout as the only layout so ZMK_KEYMAP_LEN and Studio use it.
+// The dongle keymap spans Toucan + Tofu65 (109 positions); keep toucan_tofu65_layout as the only layout so ZMK_KEYMAP_LEN and Studio use it.
 &physical_layout0 {
     status = "disabled";
 };
@@ -14,7 +14,7 @@
 / {
     chosen {
         zmk,kscan = &mock_kscan;
-        zmk,physical-layout = &toucan_bt60_layout;
+        zmk,physical-layout = &toucan_tofu65_layout;
     };
 
     mock_kscan: mock_kscan_0 {

@@ -11,13 +11,13 @@ config ZMK_SPLIT
     default y
 
 # Set this to the number of peripherals your dongle will have.
-# Left + right Toucan halves + the BT60 = 3.
+# Left + right Toucan halves + the Tofu65 = 3.
 config ZMK_SPLIT_BLE_CENTRAL_PERIPHERALS
     default 3
 
 # Set this to ZMK_SPLIT_BLE_CENTRAL_PERIPHERALS + your desired number of BT profiles.
 # 3 peripherals + 4 host profiles: an 8th connection doesn't fit in the dongle's RAM
-# alongside the 107-position Toucan + BT60 keymap.
+# alongside the 109-position Toucan + Tofu65 keymap.
 config BT_MAX_CONN
     default 7
 
