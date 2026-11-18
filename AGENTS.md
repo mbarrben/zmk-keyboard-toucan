@@ -15,6 +15,8 @@ Toucan 1, Azoteq TPS43 on Toucan 2).
 | `tap-layer` | Tap layer feature experiment |
 | `zmk_4` | ZMK 0.4 pre-release (zmk@main, Zephyr 4.1) + Prospector `feat/new-status-screens` — **do NOT merge to main until ZMK v0.4 is released** |
 | `toucan2_zmk4` | `zmk_4` + Toucan 2 upgrade kit (Azoteq TPS43 trackpad replaces the Cirque) — **current working branch** |
+| `toucan2_zmk4_bt60` | `toucan2_zmk4` + Polarity Works BT60 as a third split peripheral |
+| `toucan2_zmk4_tofu65` | `toucan2_zmk4_bt60` with the BT60 replaced by a KBDfans Tofu65 3.0 Dual-Mode PCB |
 
 ## `zmk_4` branch specifics
 
@@ -193,6 +195,35 @@ the `toucan_bt60` shield (`boards/shields/toucan_bt60/`).
 - **First pairing:** flash `settings_reset_bt60` and then `toucan_bt60` to the BT60. A
   peripheral with an old host bond does directed advertising and never finds the dongle.
   Local builds: `./build.sh bt60 bt60_reset`.
+
+## `toucan2_zmk4_tofu65` branch — Tofu65 3.0 replaces the BT60
+
+Cut from `toucan2_zmk4_bt60`. The BT60 is gone; a KBDfans Tofu65 3.0 **Dual-Mode** PCB
+(shield `toucan_tofu65`, `boards/shields/toucan_tofu65/`) is split peripheral #3.
+
+- **Not upstream `kbdfans/tofu65`.** That ZMK board is the Tofu65 **2.0** (RP2040, wired).
+  The 3.0 dual-mode PCB is the community nRF52840 board **`klink`**, ported here to HWMv2 as
+  `klink//zmk` (`boards/kbdfans/klink/`) from
+  [yangdigi/zmk-keyboards-klink](https://github.com/yangdigi/zmk-keyboards-klink) (HWMv1,
+  unloadable on Zephyr 4.1). Hardware facts come from
+  [openkbd/zmk-config-tofu65-ble-3.0](https://github.com/openkbd/zmk-config-tofu65-ble-3.0).
+- **Board quirks:** no 32 kHz crystal (`CLOCK_CONTROL_NRF_K32SRC_RC`), DCDC on, row 4 on NFC
+  pin P0.09 (`&uicr { nfct-pins-as-gpios; }`), battery on AIN3, and the bootloader only
+  accepts UF2 family **`0x59952840`** (`BUILD_OUTPUT_UF2_FAMILY_ID` in the board defconfig).
+- **Columns are a 74HC595** (`zmk,gpio-595` on `&spi0`: SCK P1.13, MOSI P0.28, CS P1.00).
+  Deep sleep (`ZMK_SLEEP`, same timeouts as the halves) wakes via `wakeup-source` on
+  `kscan0`: the 595 has no PM hook, so the all-active column outputs stay latched in
+  System OFF. The physical power switch is under Caps Lock.
+- **Position space:** `toucan-tofu65-layout.dtsi` (109 positions, 15 × 9): 0–41 Toucan,
+  42–108 Tofu65 (ANSI, 2U backspace), `row-offset = <4>`. `klink` has no layouts of its own,
+  so the layout-index trap from the BT60 doesn't apply.
+- **Keymap:** Tofu65 right column is menu=Home, raise=`&lt RAISE PG_UP`,
+  lower=`&lt LOWER PG_DN`, func=End. BT60 Fn/system keys moved to the same spots on RAISE
+  and LOWER.
+- **First pairing / switching from the BT60:** the dongle's three peripheral slots still
+  hold the BT60, so flash `settings_reset` to dongle + both halves and
+  `settings_reset_tofu65` to the Tofu65, then the firmware. Local builds:
+  `./build.sh tofu65 tofu65_reset`.
 
 ## How CI builds
 
