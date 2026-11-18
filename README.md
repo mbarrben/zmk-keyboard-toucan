@@ -11,6 +11,18 @@ The Tofu65 support is a port of existing ZMK v0.3 configs to ZMK main / Zephyr 4
 - [yangdigi/zmk-keyboards-klink](https://github.com/yangdigi/zmk-keyboards-klink): the `klink` nRF52840 board definition used by the Tofu65 3.0 Dual-Mode PCB. `boards/kbdfans/klink/` is a port of it.
 - [openkbd/zmk-config-tofu65-ble-3.0](https://github.com/openkbd/zmk-config-tofu65-ble-3.0): the Tofu65 3.0 ZMK config (74HC595 column shifter, row pins, matrix transform, ANSI layout, battery divider, UF2 family ID). `boards/shields/toucan_tofu65/` takes its hardware definitions from here. A fork is at [faytahl/zmk-config-tofu65-ble-3.0](https://github.com/faytahl/zmk-config-tofu65-ble-3.0).
 
+## Entering the Tofu65 bootloader
+
+With this firmware running, hold raise + Enter. With KBDfans' stock firmware, hold Fn + B for 3 seconds.
+
+If no key combo works (for example, after flashing `settings_reset_tofu65`, which has no keymap), use the bootloader's own entry:
+
+1. Move the power switch (under the Caps Lock keycap) to the off position.
+2. Hold Esc (the top-left key).
+3. Plug in the USB cable. The UF2 drive appears; release Esc and copy the `.uf2` onto it.
+
+If Windows reports an unknown USB device (Code 43) instead, plug the cable straight into the PC rather than through a hub.
+
 # License
 
 The code in this repo is available under the MIT license.
