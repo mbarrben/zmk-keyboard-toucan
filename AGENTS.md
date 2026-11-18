@@ -213,7 +213,8 @@ Cut from `toucan2_zmk4_bt60`. The BT60 is gone; a KBDfans Tofu65 3.0 **Dual-Mode
 - **Columns are a 74HC595** (`zmk,gpio-595` on `&spi0`: SCK P1.13, MOSI P0.28, CS P1.00).
   Deep sleep (`ZMK_SLEEP`, same timeouts as the halves) wakes via `wakeup-source` on
   `kscan0`: the 595 has no PM hook, so the all-active column outputs stay latched in
-  System OFF. The physical power switch is under Caps Lock.
+  System OFF (confirmed on hardware: the dongle shows it disconnected, and a keypress wakes and
+  reconnects it). The physical power switch is under Caps Lock.
 - **Position space:** `toucan-tofu65-layout.dtsi` (109 positions, 15 × 9): 0–41 Toucan,
   42–108 Tofu65 (ANSI, 2U backspace), `row-offset = <4>`. `klink` has no layouts of its own,
   so the layout-index trap from the BT60 doesn't apply.
