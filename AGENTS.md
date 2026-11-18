@@ -224,6 +224,15 @@ Cut from `toucan2_zmk4_bt60`. The BT60 is gone; a KBDfans Tofu65 3.0 **Dual-Mode
   hold the BT60, so flash `settings_reset` to dongle + both halves and
   `settings_reset_tofu65` to the Tofu65, then the firmware. Local builds:
   `./build.sh tofu65 tofu65_reset`.
+- **Entering the Tofu65 bootloader:** from our firmware, hold raise + Enter (`&bootloader`);
+  from KBDfans' stock firmware, hold Fn + B for 3 s. The `settings_reset_tofu65` firmware
+  has no keys at all (`zmk,kscan-mock`), and the PCB has no reset button or pads. The
+  USB-C port sits on a daughterboard in the bottom case, connected by pogo pins.
+  Recovery is the YDKB (yangdigi) bootloader's own entry: switch the battery off (switch under
+  Caps Lock), hold **Esc** (top-left key), plug in USB, and release once the drive mounts.
+  With the battery on, plugging in doesn't reset the MCU, so the bootloader never checks
+  Esc. Source: ydkb.io/help/en/bootloader/uf2-bootloader.md. Some hubs fail
+  enumeration (Code 43); plug straight into the PC.
 
 ## How CI builds
 
