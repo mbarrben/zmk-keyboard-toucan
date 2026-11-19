@@ -82,3 +82,14 @@
             ;
     };
 };
+
+/ {
+    behaviors {
+        // Device name must stay "tf65_ind": the dongle invokes it by that string
+        // (tofu65_indicator_relay.c), and split behavior names are capped at 8 chars.
+        tf65_ind: tf65_ind {
+            compatible = "zmk,behavior-tofu65-indicators";
+            #binding-cells = <1>;
+        };
+    };
+};

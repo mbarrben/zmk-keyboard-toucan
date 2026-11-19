@@ -1,0 +1,8 @@
+# SPDX-License-Identifier: MIT
+description: >
+  Tofu65 indicator LED state. The prospector dongle invokes it on the Tofu65 with
+  param1 = HID indicator bitmap (HID_INDICATOR_* from dt-bindings/zmk/hid_indicators.h).
+
+compatible: "zmk,behavior-tofu65-indicators"
+
+include: one_param.yaml

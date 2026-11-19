@@ -26,6 +26,21 @@
         output-ohms = <2000000>;
         full-ohms = <(2000000 + 820000)>;
     };
+
+    // RGB indicator LED (vendor common.overlay): P1.11 R, P1.10 G, P0.03 B, active low.
+    indicator_leds: indicator_leds {
+        compatible = "gpio-leds";
+
+        indicator_r: indicator_r {
+            gpios = <&gpio1 11 GPIO_ACTIVE_LOW>;
+        };
+        indicator_g: indicator_g {
+            gpios = <&gpio1 10 GPIO_ACTIVE_LOW>;
+        };
+        indicator_b: indicator_b {
+            gpios = <&gpio0 3 GPIO_ACTIVE_LOW>;
+        };
+    };
 };
 
 &adc {
