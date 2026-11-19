@@ -225,6 +225,14 @@ Cut from `toucan2_zmk4_bt60`. The BT60 is gone; a KBDfans Tofu65 3.0 **Dual-Mode
   hold the BT60, so flash `settings_reset` to dongle + both halves and
   `settings_reset_tofu65` to the Tofu65, then the firmware. Local builds:
   `./build.sh tofu65 tofu65_reset`.
+- **Indicator LED** (`gpio-leds` in the klink DTS, active low: R P1.11, G P1.10, B P0.03),
+  driven by `toucan_tofu65/tofu65_indicator.c`: purple = Caps Lock, 3× green/yellow flash =
+  dongle link up/down, red blink = ≤2% battery, off when idle on battery. Caps Lock state comes
+  from the dongle's `toucan/tofu65_indicator_relay.c`, which invokes the Tofu65's `tf65_ind`
+  behavior on every peripheral slot (the halves log an error and ignore it). It does not use
+  `ZMK_SPLIT_PERIPHERAL_HID_INDICATORS`, because that only reaches the first connected slot,
+  and it does not use `zmk,indicator-leds`, which doesn't link on a peripheral. The behavior
+  name is the wire contract: ≤8 chars, identical on both sides.
 - **Entering the Tofu65 bootloader:** from our firmware, hold raise + Enter (`&bootloader`);
   from KBDfans' stock firmware, hold Fn + B for 3 s. The `settings_reset_tofu65` firmware
   has no keys at all (`zmk,kscan-mock`), and the PCB has no reset button or pads. The
